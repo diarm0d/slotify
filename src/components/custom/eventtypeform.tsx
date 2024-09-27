@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import {
   Drawer,
   DrawerClose,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
+import axios, { isCancel, AxiosError } from "axios";
 
 const days = [
   "Monday",
@@ -33,10 +34,29 @@ const days = [
   "Sunday",
 ];
 
-const onSubmit = () => {
-  console.log("Form submitted");
-};
+const onSubmit = (values: any) => {
+  const { title, description, length } = values;
 
+  const formattedDays = days.reduce(
+    (acc, day) => ({
+      ...acc,
+      [day]: {
+        from: values[`${day}-from`],
+        to: values[`${day}-to`],
+      },
+    }),
+    {}
+  );
+
+  console.log("Form submitted", values);
+
+  axios.post("/api/event-types", {
+    title,
+    description,
+    length,
+    days: formattedDays,
+  });
+};
 
 const EventTypeForm = () => {
   return (
@@ -64,15 +84,36 @@ const EventTypeForm = () => {
               <div className="p-4 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
-                  <Input id="title" placeholder="Enter title" />
+                  <Field name="title" type="text">
+                    {({ input, meta }) => (
+                      <Input id="title" placeholder="Enter title" {...input} />
+                    )}
+                  </Field>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" placeholder="Enter description" />
+                  <Field name="description">
+                    {({ input, meta }) => (
+                      <Textarea
+                        id="description"
+                        placeholder="Enter description"
+                        {...input}
+                      />
+                    )}
+                  </Field>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="length">Length (in minutes)</Label>
-                  <Input id="length" type="number" placeholder="Enter length" />
+                  <Field name="length" type="number">
+                    {({ input, meta }) => (
+                      <Input
+                        id="length"
+                        type="number"
+                        placeholder="Enter length"
+                        {...input}
+                      />
+                    )}
+                  </Field>
                 </div>
               </div>
               <div className="p-4 space-y-2">
@@ -80,36 +121,46 @@ const EventTypeForm = () => {
                 {days.map((day) => (
                   <div key={day} className="flex items-center space-x-2">
                     <span className="w-24">{day}</span>
-                    <Select>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="From" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[...Array(24)].map((_, i) => (
-                          <SelectItem
-                            key={i}
-                            value={i.toString().padStart(2, "0")}
-                          >
-                            {i.toString().padStart(2, "0")}:00
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="To" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[...Array(24)].map((_, i) => (
-                          <SelectItem
-                            key={i}
-                            value={i.toString().padStart(2, "0")}
-                          >
-                            {i.toString().padStart(2, "0")}:00
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Field name={`${day}-from`} type="select">
+                      {({ input, meta }) => (
+                        <Select>
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="From" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[...Array(24)].map((_, i) => (
+                              <SelectItem
+                                key={i}
+                                value={i.toString().padStart(2, "0")}
+                                // {...input}
+                              >
+                                {i.toString().padStart(2, "0")}:00
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </Field>
+                    <Field name={`${day}-to`} type="select">
+                      {({ input, meta }) => (
+                        <Select>
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="To" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[...Array(24)].map((_, i) => (
+                              <SelectItem
+                                key={i}
+                                value={i.toString().padStart(2, "0")}
+                                // {...input}
+                              >
+                                {i.toString().padStart(2, "0")}:00
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </Field>
                   </div>
                 ))}
               </div>
@@ -128,6 +179,6 @@ const EventTypeForm = () => {
       </DrawerContent>
     </Drawer>
   );
-}
+};
 
-export default EventTypeForm
+export default EventTypeForm;
