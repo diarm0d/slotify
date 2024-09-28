@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PlusIcon } from "lucide-react";
 import axios, { isCancel, AxiosError } from "axios";
 
@@ -34,36 +35,73 @@ const days = [
   "Sunday",
 ];
 
-const onSubmit = (values: any) => {
-  const { title, description, length } = values;
-
-  const formattedDays = days.reduce(
-    (acc, day) => ({
-      ...acc,
-      [day]: {
-        from: values[`${day}-from`],
-        to: values[`${day}-to`],
-      },
-    }),
-    {}
+const SelectAdapter = ({ input, ...rest }: any) => {
+  return (
+    <Select
+      onValueChange={input ? (value) => input.onChange(value) : undefined}
+    >
+      <SelectTrigger>
+        <SelectValue placeholder={rest.placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {rest.options.map((option: any) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
-
-  console.log("Form submitted", values);
-
-  axios.post("/api/event-types", {
-    title,
-    description,
-    length,
-    days: formattedDays,
-  });
 };
 
 const EventTypeForm = () => {
+  const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const [activeDays, setActiveDays] = React.useState<Record<string, boolean>>(
+    Object.fromEntries(days.map((day) => [day, false]))
+  );
+
+  const handleDayToggle = (day: string) => {
+    setActiveDays((prev) => ({ ...prev, [day]: !prev[day] }));
+  };
+
+  const onSubmit = (values: any) => {
+    console.log(values);
+    const { title, description, length } = values;
+
+    const formattedDays = days.reduce(
+      (acc, day) => ({
+        ...acc,
+        [day]: {
+          active: values[`${day}-active`],
+          from: values[`${day}-from`] || null,
+          to: values[`${day}-to`] || null,
+        },
+      }),
+      {}
+    );
+
+    console.log("Form submitted", {
+      title,
+      description,
+      length,
+      days: formattedDays,
+    });
+
+    axios.post("/api/event-types", {
+      title,
+      description,
+      length,
+      days: formattedDays,
+    });
+
+    setIsOpen(false);
+  };
+
   return (
-    <Drawer>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger>
         {" "}
-        <Button className="mt-4">
+        <Button className="mt-4" onClick={() => setIsOpen(true)}>
           <PlusIcon className="h-4 w-4 mr-2" />
           Add New Event Type
         </Button>
@@ -78,7 +116,7 @@ const EventTypeForm = () => {
         <Form
           className="w-full"
           onSubmit={onSubmit}
-          initialValues={{}}
+          initialValues={{ bookingTimes: {} }}
           render={({ handleSubmit, form, submitting, pristine, values }) => (
             <form onSubmit={handleSubmit}>
               <div className="p-4 space-y-4">
@@ -119,57 +157,64 @@ const EventTypeForm = () => {
               <div className="p-4 space-y-2">
                 <Label>Daily Schedule</Label>
                 {days.map((day) => (
-                  <div key={day} className="flex items-center space-x-2">
-                    <span className="w-24">{day}</span>
-                    <Field name={`${day}-from`} type="select">
-                      {({ input, meta }) => (
-                        <Select>
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue placeholder="From" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[...Array(24)].map((_, i) => (
-                              <SelectItem
-                                key={i}
-                                value={i.toString().padStart(2, "0")}
-                                // {...input}
-                              >
-                                {i.toString().padStart(2, "0")}:00
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </Field>
-                    <Field name={`${day}-to`} type="select">
-                      {({ input, meta }) => (
-                        <Select>
-                          <SelectTrigger className="w-[120px]">
-                            <SelectValue placeholder="To" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[...Array(24)].map((_, i) => (
-                              <SelectItem
-                                key={i}
-                                value={i.toString().padStart(2, "0")}
-                                // {...input}
-                              >
-                                {i.toString().padStart(2, "0")}:00
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </Field>
+                  <div
+                    key={day}
+                    className="flex items-center justify-between space-x-2"
+                  >
+                    <div>
+                      <Field name={`${day}-active`} type="checkbox">
+                        {({ input }) => (
+                          <Checkbox
+                            id={`checkbox-${day}`}
+                            checked={input.value}
+                            onCheckedChange={input.onChange}
+                          />
+                        )}
+                      </Field>
+                      <Label htmlFor={`checkbox-${day}`} className="w-24 pl-4">
+                        {day}
+                      </Label>
+                    </div>
+                    <div className="w-[150px]">
+                      <Field
+                        disabled={!activeDays[day]}
+                        name={`${day}-from`}
+                        type="select"
+                        component={SelectAdapter}
+                        placeholder="From"
+                        options={[...Array(24)].map((_, i) => ({
+                          value: i.toString().padStart(2, "0"),
+                          label: `${i.toString().padStart(2, "0")}:00`,
+                        }))}
+                      />
+                    </div>
+                    <div className="w-[150px]">
+                      <Field
+                        disabled={!activeDays[day]}
+                        name={`${day}-to`}
+                        type="select"
+                        component={SelectAdapter}
+                        placeholder="To"
+                        options={[...Array(24)].map((_, i) => ({
+                          value: i.toString().padStart(2, "0"),
+                          label: `${i.toString().padStart(2, "0")}:00`,
+                        }))}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
               <DrawerFooter>
-                <Button type="submit" disabled={submitting || pristine}>
+                <Button
+                  type="submit"
+                  disabled={submitting || pristine}
+                >
                   Submit
                 </Button>
                 <DrawerClose>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)}>
+                    Cancel
+                  </Button>
                 </DrawerClose>
               </DrawerFooter>
               <pre>{JSON.stringify(values)}</pre>
