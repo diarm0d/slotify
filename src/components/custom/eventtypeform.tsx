@@ -76,7 +76,6 @@ type WeekSchedule = {
   sundayTo: number | null;
 };
 
-
 type Option = {
   value: string;
   label: string;
@@ -87,6 +86,7 @@ interface FormInputs {
   description: string;
   length: number;
   bookingTimes: Record<string, string>;
+  [key: string]: boolean | string | number | Record<string, string>;
 }
 
 type FormValues = FormInputs & WeekSchedule;
@@ -116,19 +116,8 @@ const SelectAdapter = ({
 
 const EventTypeForm = () => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
-  const [activeDays, setActiveDays] = React.useState<Record<string, boolean>>(
-    Object.fromEntries(days.map((day) => [day, false]))
-  );
-
-  console.log(activeDays);
-
-  const handleDayToggle = (day: string) => {
-    console.log(day);
-    setActiveDays((prev) => ({ ...prev, [day]: !prev[day] }));
-  };
 
   const onSubmit = (values: FormValues) => {
-    console.log(values);
     const { title, description, length } = values;
 
     const formattedDays: FormattedDays = days.reduce(
@@ -142,13 +131,6 @@ const EventTypeForm = () => {
       }),
       {}
     );
-
-    console.log("Form submitted", {
-      title,
-      description,
-      length,
-      days: formattedDays,
-    });
 
     axios.post("/api/event-types", {
       title,
@@ -176,11 +158,11 @@ const EventTypeForm = () => {
             This is a type of event that you can schedule in your calendar.
           </DrawerDescription>
         </DrawerHeader>
-        <Form
+        <Form<FormValues>
           className="w-full"
           onSubmit={onSubmit}
           initialValues={{ bookingTimes: {} }}
-          render={({ handleSubmit, submitting, pristine, values }) => (
+          render={({ handleSubmit, submitting, pristine, values, form }) => (
             <form onSubmit={handleSubmit}>
               <div className="p-4 space-y-4">
                 <div className="space-y-2">
@@ -220,24 +202,20 @@ const EventTypeForm = () => {
               <div className="p-4 space-y-2">
                 <Label>Daily Schedule</Label>
                 {days.map((day) => {
+                  const activeDay: string = `${day}Active`;
                   return (
                     <div
                       key={day}
                       className="flex items-center justify-between space-x-2"
                     >
-                      <div>
+                      <div className="w-[150px]">
                         <Field name={`${day}Active`} type="checkbox">
                           {({ input }) => {
-                            const handleChange = (checked: boolean) => {
-                              console.log(checked);
-                              handleDayToggle(day);
-                              input.onChange(checked);
-                            };
                             return (
                               <Checkbox
                                 id={`checkbox-${day}`}
                                 checked={input.value}
-                                onCheckedChange={handleChange}
+                                onCheckedChange={input.onChange}
                               />
                             );
                           }}
@@ -246,12 +224,14 @@ const EventTypeForm = () => {
                           htmlFor={`checkbox-${day}`}
                           className="w-24 pl-4"
                         >
-                          {day}
+                          {day.charAt(0).toUpperCase() + day.slice(1)}
                         </Label>
                       </div>
                       <div className="w-[150px]">
                         <Field
-                          disabled={!activeDays[day]}
+                          disabled={
+                            !form.getState().values[activeDay] as boolean
+                          }
                           name={`${day}From`}
                           type="select"
                           component={SelectAdapter}
@@ -264,7 +244,9 @@ const EventTypeForm = () => {
                       </div>
                       <div className="w-[150px]">
                         <Field
-                          disabled={!activeDays[day]}
+                          disabled={
+                            !form.getState().values[activeDay] as boolean
+                          }
                           name={`${day}To`}
                           type="select"
                           component={SelectAdapter}
