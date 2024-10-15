@@ -9,8 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SettingsIcon, PlusIcon } from "lucide-react";
+import { SettingsIcon } from "lucide-react";
 import EventTypeForm from "./eventtypeform";
+import { FormattedDays } from "./eventtypeform";
 
 // Mock data for booked events
 const bookedEvents = [
@@ -37,26 +38,33 @@ const bookedEvents = [
   },
 ];
 
-const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+// const days = [
+//   "Monday",
+//   "Tuesday",
+//   "Wednesday",
+//   "Thursday",
+//   "Friday",
+//   "Saturday",
+//   "Sunday",
+// ];
+
+ interface EventType {
+   id: number;
+   name: string;
+   duration: number; // Duration in minutes
+   days?: FormattedDays;
+ }
 
 // Mock data for event types
-const eventTypes: any[] = [
+const eventTypes: EventType[] = [
   { id: 1, name: "30 Min Meeting", duration: 30 },
   { id: 2, name: "60 Min Meeting", duration: 60 },
   { id: 3, name: "Project Consultation", duration: 90 },
 ];
 
-const onSubmit = () => {
-  console.log("Form submitted");
-};
+// const onSubmit = () => {
+//   console.log("Form submitted");
+// };
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("booked");

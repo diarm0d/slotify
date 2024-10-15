@@ -42,7 +42,7 @@ interface DaySchedule {
   to: number | null;
 }
 
-type FormattedDays = {
+export type FormattedDays = {
   [day: string]: DaySchedule;
 };
 
