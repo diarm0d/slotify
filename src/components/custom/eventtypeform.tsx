@@ -23,28 +23,88 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PlusIcon } from "lucide-react";
-import axios, { isCancel, AxiosError } from "axios";
+import axios from "axios";
+import { FieldRenderProps } from "react-final-form";
 
 const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
 ];
 
-const SelectAdapter = ({ input, ...rest }: any) => {
+interface DaySchedule {
+  active: boolean;
+  from: number | null;
+  to: number | null;
+}
+
+type FormattedDays = {
+  [day: string]: DaySchedule;
+};
+
+type WeekSchedule = {
+  mondayActive: boolean;
+  mondayFrom: number | null;
+  mondayTo: number | null;
+
+  tuesdayActive: boolean;
+  tuesdayFrom: number | null;
+  tuesdayTo: number | null;
+
+  wednesdayActive: boolean;
+  wednesdayFrom: number | null;
+  wednesdayTo: number | null;
+
+  thursdayActive: boolean;
+  thursdayFrom: number | null;
+  thursdayTo: number | null;
+
+  fridayActive: boolean;
+  fridayFrom: number | null;
+  fridayTo: number | null;
+
+  saturdayActive: boolean;
+  saturdayFrom: number | null;
+  saturdayTo: number | null;
+
+  sundayActive: boolean;
+  sundayFrom: number | null;
+  sundayTo: number | null;
+};
+
+
+type Option = {
+  value: string;
+  label: string;
+};
+
+interface FormInputs {
+  title: string;
+  description: string;
+  length: number;
+  bookingTimes: Record<string, string>;
+}
+
+type FormValues = FormInputs & WeekSchedule;
+
+const SelectAdapter = ({
+  input,
+  ...rest
+}: FieldRenderProps<string, HTMLElement>) => {
   return (
     <Select
       onValueChange={input ? (value) => input.onChange(value) : undefined}
+      disabled={rest.disabled}
     >
       <SelectTrigger>
         <SelectValue placeholder={rest.placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {rest.options.map((option: any) => (
+        {rest.options.map((option: Option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
           </SelectItem>
@@ -60,21 +120,24 @@ const EventTypeForm = () => {
     Object.fromEntries(days.map((day) => [day, false]))
   );
 
+  console.log(activeDays);
+
   const handleDayToggle = (day: string) => {
+    console.log(day);
     setActiveDays((prev) => ({ ...prev, [day]: !prev[day] }));
   };
 
-  const onSubmit = (values: any) => {
+  const onSubmit = (values: FormValues) => {
     console.log(values);
     const { title, description, length } = values;
 
-    const formattedDays = days.reduce(
+    const formattedDays: FormattedDays = days.reduce(
       (acc, day) => ({
         ...acc,
         [day]: {
-          active: values[`${day}-active`],
-          from: values[`${day}-from`] || null,
-          to: values[`${day}-to`] || null,
+          active: values[`${day}Active` as keyof FormValues] as boolean,
+          from: values[`${day}From` as keyof FormValues] || null,
+          to: values[`${day}To` as keyof FormValues] || null,
         },
       }),
       {}
@@ -117,13 +180,13 @@ const EventTypeForm = () => {
           className="w-full"
           onSubmit={onSubmit}
           initialValues={{ bookingTimes: {} }}
-          render={({ handleSubmit, form, submitting, pristine, values }) => (
+          render={({ handleSubmit, submitting, pristine, values }) => (
             <form onSubmit={handleSubmit}>
               <div className="p-4 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
                   <Field name="title" type="text">
-                    {({ input, meta }) => (
+                    {({ input }) => (
                       <Input id="title" placeholder="Enter title" {...input} />
                     )}
                   </Field>
@@ -131,7 +194,7 @@ const EventTypeForm = () => {
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Field name="description">
-                    {({ input, meta }) => (
+                    {({ input }) => (
                       <Textarea
                         id="description"
                         placeholder="Enter description"
@@ -143,7 +206,7 @@ const EventTypeForm = () => {
                 <div className="space-y-2">
                   <Label htmlFor="length">Length (in minutes)</Label>
                   <Field name="length" type="number">
-                    {({ input, meta }) => (
+                    {({ input }) => (
                       <Input
                         id="length"
                         type="number"
@@ -156,59 +219,68 @@ const EventTypeForm = () => {
               </div>
               <div className="p-4 space-y-2">
                 <Label>Daily Schedule</Label>
-                {days.map((day) => (
-                  <div
-                    key={day}
-                    className="flex items-center justify-between space-x-2"
-                  >
-                    <div>
-                      <Field name={`${day}-active`} type="checkbox">
-                        {({ input }) => (
-                          <Checkbox
-                            id={`checkbox-${day}`}
-                            checked={input.value}
-                            onCheckedChange={input.onChange}
-                          />
-                        )}
-                      </Field>
-                      <Label htmlFor={`checkbox-${day}`} className="w-24 pl-4">
-                        {day}
-                      </Label>
+                {days.map((day) => {
+                  return (
+                    <div
+                      key={day}
+                      className="flex items-center justify-between space-x-2"
+                    >
+                      <div>
+                        <Field name={`${day}Active`} type="checkbox">
+                          {({ input }) => {
+                            const handleChange = (checked: boolean) => {
+                              console.log(checked);
+                              handleDayToggle(day);
+                              input.onChange(checked);
+                            };
+                            return (
+                              <Checkbox
+                                id={`checkbox-${day}`}
+                                checked={input.value}
+                                onCheckedChange={handleChange}
+                              />
+                            );
+                          }}
+                        </Field>
+                        <Label
+                          htmlFor={`checkbox-${day}`}
+                          className="w-24 pl-4"
+                        >
+                          {day}
+                        </Label>
+                      </div>
+                      <div className="w-[150px]">
+                        <Field
+                          disabled={!activeDays[day]}
+                          name={`${day}From`}
+                          type="select"
+                          component={SelectAdapter}
+                          placeholder="From"
+                          options={[...Array(24)].map((_, i) => ({
+                            value: i.toString().padStart(2, "0"),
+                            label: `${i.toString().padStart(2, "0")}:00`,
+                          }))}
+                        />
+                      </div>
+                      <div className="w-[150px]">
+                        <Field
+                          disabled={!activeDays[day]}
+                          name={`${day}To`}
+                          type="select"
+                          component={SelectAdapter}
+                          placeholder="To"
+                          options={[...Array(24)].map((_, i) => ({
+                            value: i.toString().padStart(2, "0"),
+                            label: `${i.toString().padStart(2, "0")}:00`,
+                          }))}
+                        />
+                      </div>
                     </div>
-                    <div className="w-[150px]">
-                      <Field
-                        disabled={!activeDays[day]}
-                        name={`${day}-from`}
-                        type="select"
-                        component={SelectAdapter}
-                        placeholder="From"
-                        options={[...Array(24)].map((_, i) => ({
-                          value: i.toString().padStart(2, "0"),
-                          label: `${i.toString().padStart(2, "0")}:00`,
-                        }))}
-                      />
-                    </div>
-                    <div className="w-[150px]">
-                      <Field
-                        disabled={!activeDays[day]}
-                        name={`${day}-to`}
-                        type="select"
-                        component={SelectAdapter}
-                        placeholder="To"
-                        options={[...Array(24)].map((_, i) => ({
-                          value: i.toString().padStart(2, "0"),
-                          label: `${i.toString().padStart(2, "0")}:00`,
-                        }))}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <DrawerFooter>
-                <Button
-                  type="submit"
-                  disabled={submitting || pristine}
-                >
+                <Button type="submit" disabled={submitting || pristine}>
                   Submit
                 </Button>
                 <DrawerClose>
