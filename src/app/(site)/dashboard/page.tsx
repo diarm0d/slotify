@@ -10,8 +10,8 @@ export default async function DashboardPage() {
   const eventTypes = await EventTypeModel.find({ email });
   return (
     <>
-      {JSON.stringify(eventTypes)}
-      <Dashboard />
+      {/* {JSON.stringify(eventTypes)} */}
+      <Dashboard eventTypes={eventTypes} />
     </>
   );
 }

@@ -38,35 +38,53 @@ const bookedEvents = [
   },
 ];
 
-// const days = [
-//   "Monday",
-//   "Tuesday",
-//   "Wednesday",
-//   "Thursday",
-//   "Friday",
-//   "Saturday",
-//   "Sunday",
-// ];
+//  interface EventType {
+//    id: number;
+//    name: string;
+//    duration: number; // Duration in minutes
+//    days?: FormattedDays;
+//  }
+
+//  interface FromTo {
+//    from: string;
+//    to: string;
+//  }
+
+//  interface BookingTimes {
+//    monday: FromTo;
+//    tuesday: FromTo;
+//    wednesday: FromTo;
+//    thursday: FromTo;
+//    friday: FromTo;
+//    saturday: FromTo;
+//    sunday: FromTo;
+//  }
 
  interface EventType {
-   id: number;
-   name: string;
-   duration: number; // Duration in minutes
-   days?: FormattedDays;
+   email: string;
+   title: string;
+   description: string;
+   length: number;
+   bookingTimes: FormattedDays;
+   createdAt?: Date; // Timestamps fields if needed
+   updatedAt?: Date;
+ }
+
+ interface Props {
+   eventTypes: EventType[];
  }
 
 // Mock data for event types
-const eventTypes: EventType[] = [
-  { id: 1, name: "30 Min Meeting", duration: 30 },
-  { id: 2, name: "60 Min Meeting", duration: 60 },
-  { id: 3, name: "Project Consultation", duration: 90 },
-];
+// const mockEventTypes: EventType[] = [
+//   { id: 1, name: "30 Min Meeting", duration: 30 },
+//   { id: 2, name: "60 Min Meeting", duration: 60 },
+//   { id: 3, name: "Project Consultation", duration: 90 },
+// ];
 
-// const onSubmit = () => {
-//   console.log("Form submitted");
-// };
+// console.log(mockEventTypes);
 
-export default function Dashboard() {
+
+const Dashboard: React.FC<Props> = ({ eventTypes }) => {
   const [activeTab, setActiveTab] = useState("booked");
 
   return (
@@ -134,15 +152,15 @@ export default function Dashboard() {
               ) : (
                 <>
                   <ul className="space-y-4">
-                    {eventTypes.map((type) => (
+                    {eventTypes.map((type, i) => (
                       <li
-                        key={type.id}
+                        key={i}
                         className="flex items-center justify-between p-4 bg-muted rounded-lg"
                       >
                         <div>
-                          <h3 className="font-semibold">{type.name}</h3>
+                          <h3 className="font-semibold">{type.title}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {type.duration} minutes
+                            {type.length} minutes
                           </p>
                         </div>
                         <Button variant="ghost" size="icon">
@@ -162,3 +180,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;
