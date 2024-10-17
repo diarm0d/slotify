@@ -1,6 +1,7 @@
 import mongoose, { Schema, model } from "mongoose";
 
 type FromTo = {
+  active: boolean,
   from: string;
   to: string;
 };

@@ -9,6 +9,17 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Form, Field } from "react-final-form";
@@ -22,9 +33,11 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
 import axios from "axios";
 import { FieldRenderProps } from "react-final-form";
+import { EventType } from "@/components/custom/dashboard";
+import { useRouter } from "next/router";
 
 const days = [
   "monday",
@@ -89,6 +102,13 @@ interface FormInputs {
   [key: string]: boolean | string | number | Record<string, string>;
 }
 
+interface Props {
+  eventType?: EventType;
+  buttonType?: "ghost" | "outline";
+  buttonIcon?: "plus" | "settings";
+  buttonSize?: "icon";
+}
+
 type FormValues = FormInputs & WeekSchedule;
 
 const SelectAdapter = ({
@@ -114,10 +134,20 @@ const SelectAdapter = ({
   );
 };
 
-const EventTypeForm = () => {
+const EventTypeForm = ({
+  eventType,
+  buttonType,
+  buttonIcon,
+  buttonSize,
+}: Props) => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const router = useRouter();
 
-  const onSubmit = (values: FormValues) => {
+  const handleDelete = async () => {
+    await axios.delete('api/event-types?id='+eventType?._id)
+  }
+
+  const onSubmit = async (values: FormValues) => {
     const { title, description, length } = values;
 
     const formattedDays: FormattedDays = days.reduce(
@@ -132,23 +162,42 @@ const EventTypeForm = () => {
       {}
     );
 
-    axios.post("/api/event-types", {
+    const id = eventType?._id;
+    const request = id ? axios.put : axios.post;
+    const data = {
       title,
       description,
       length,
-      days: formattedDays,
-    });
+      bookingTimes: formattedDays,
+    };
 
-    setIsOpen(false);
+    const response = await request("/api/event-types", { ...data, id });
+
+    if (response.data) {
+      setIsOpen(false);
+      router.push("/dashboard");
+      router.reload();
+    }
   };
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger>
         {" "}
-        <Button className="mt-4" onClick={() => setIsOpen(true)}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add New Event Type
+        <Button
+          variant={buttonType}
+          size={buttonSize}
+          className="mt-4"
+          onClick={() => setIsOpen(true)}
+        >
+          {buttonIcon && buttonIcon === "settings" ? (
+            <SettingsIcon className="h-4 w-4" />
+          ) : (
+            <>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add New Event Type
+            </>
+          )}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
@@ -161,6 +210,7 @@ const EventTypeForm = () => {
         <Form<FormValues>
           className="w-full"
           onSubmit={onSubmit}
+          // eventType ? eventType : { bookingTimes: {} }
           initialValues={{ bookingTimes: {} }}
           render={({ handleSubmit, submitting, pristine, values, form }) => (
             <form onSubmit={handleSubmit}>
@@ -265,6 +315,40 @@ const EventTypeForm = () => {
                 <Button type="submit" disabled={submitting || pristine}>
                   Submit
                 </Button>
+                {eventType && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2Icon className="mr-2 h-4 w-4" />
+                        Delete Event
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you sure you want to delete this event?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete the event and remove all associated data from
+                          our servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={() => {
+                            handleDelete;
+                            setIsOpen(false);
+                          }}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
                 <DrawerClose>
                   <Button variant="outline" onClick={() => setIsOpen(false)}>
                     Cancel

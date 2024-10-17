@@ -14,3 +14,27 @@ export async function POST(req: NextRequest) {
 
   return Response.error;
 }
+
+export async function PUT(req: NextRequest) {
+  await mongoose.connect(process.env.MONGODB_URI || "");
+  const data = await req.json();
+  const email = await session().get("email");
+  const id = data.id;
+  if (email && id) {
+    const eventTypeDoc = await EventTypeModel.updateOne(
+      { email, _id: id },
+      data
+    );
+    return Response.json(eventTypeDoc);
+  }
+
+  return Response.error;
+}
+
+export async function DELETE(req: NextRequest) {
+  await mongoose.connect(process.env.MONGODB_URI || "");
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id");
+  await EventTypeModel.deleteOne({ _id: id });
+  return Response.json(true);
+}

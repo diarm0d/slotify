@@ -38,51 +38,20 @@ const bookedEvents = [
   },
 ];
 
-//  interface EventType {
-//    id: number;
-//    name: string;
-//    duration: number; // Duration in minutes
-//    days?: FormattedDays;
-//  }
+export interface EventType {
+  _id: number;
+  email: string;
+  title: string;
+  description: string;
+  length: number;
+  bookingTimes: FormattedDays;
+  createdAt?: Date; // Timestamps fields if needed
+  updatedAt?: Date;
+}
 
-//  interface FromTo {
-//    from: string;
-//    to: string;
-//  }
-
-//  interface BookingTimes {
-//    monday: FromTo;
-//    tuesday: FromTo;
-//    wednesday: FromTo;
-//    thursday: FromTo;
-//    friday: FromTo;
-//    saturday: FromTo;
-//    sunday: FromTo;
-//  }
-
- interface EventType {
-   email: string;
-   title: string;
-   description: string;
-   length: number;
-   bookingTimes: FormattedDays;
-   createdAt?: Date; // Timestamps fields if needed
-   updatedAt?: Date;
- }
-
- interface Props {
-   eventTypes: EventType[];
- }
-
-// Mock data for event types
-// const mockEventTypes: EventType[] = [
-//   { id: 1, name: "30 Min Meeting", duration: 30 },
-//   { id: 2, name: "60 Min Meeting", duration: 60 },
-//   { id: 3, name: "Project Consultation", duration: 90 },
-// ];
-
-// console.log(mockEventTypes);
-
+interface Props {
+  eventTypes: EventType[];
+}
 
 const Dashboard: React.FC<Props> = ({ eventTypes }) => {
   const [activeTab, setActiveTab] = useState("booked");
@@ -163,10 +132,12 @@ const Dashboard: React.FC<Props> = ({ eventTypes }) => {
                             {type.length} minutes
                           </p>
                         </div>
-                        <Button variant="ghost" size="icon">
-                          <SettingsIcon className="h-4 w-4" />
-                          <span className="sr-only">Settings</span>
-                        </Button>
+                        <EventTypeForm
+                          eventType={type}
+                          buttonIcon="settings"
+                          buttonType="ghost"
+                          buttonSize="icon"
+                        />
                       </li>
                     ))}
                   </ul>
@@ -179,6 +150,6 @@ const Dashboard: React.FC<Props> = ({ eventTypes }) => {
       </Tabs>
     </div>
   );
-}
+};
 
 export default Dashboard;
