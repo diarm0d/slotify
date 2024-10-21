@@ -7,7 +7,8 @@ import { session } from "@/lib/session";
 export default async function DashboardPage() {
   mongoose.connect(process.env.MONGODB_URI || "");
   const email = await session().get("email");
-  const eventTypes = await EventTypeModel.find({ email });
+  const eventTypes = await EventTypeModel.find({ email }).lean();
+
   return (
     <>
       {/* {JSON.stringify(eventTypes)} */}
