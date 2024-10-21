@@ -149,6 +149,7 @@ const EventTypeForm = ({
 }: Props) => {
   console.log(eventType);
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const url = `${process.env.NEX_PUBLIC_URL}/username/${eventType?.uri}`;
   const initialValues = { bookingTimes: {} };
   const editValues = eventType && {
     title: eventType.title || "",
@@ -242,7 +243,7 @@ const EventTypeForm = ({
           <DrawerHeader>
             <DrawerTitle>{eventType ? `Edit ${eventType.title}` : "New Event"}</DrawerTitle>
             {eventType ? (
-              <UrlCopier url={`https://example.com/${eventType.uri}`} />
+              <UrlCopier url={url} />
             ) : (
               <DrawerDescription>
                 This is a type of event that you can schedule in your calendar.
