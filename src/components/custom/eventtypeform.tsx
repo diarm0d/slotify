@@ -122,9 +122,12 @@ const SelectAdapter = ({
     <Select
       onValueChange={input ? (value) => input.onChange(value) : undefined}
       disabled={rest.disabled}
+      value={input?.value || ""}
     >
       <SelectTrigger>
-        <SelectValue placeholder={rest.placeholder} />
+        <SelectValue placeholder={rest.placeholder}>
+          {input?.value || rest.placeholder}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {rest.options.map((option: Option) => (
@@ -164,13 +167,21 @@ const EventTypeForm = ({
                 eventType.bookingTimes[day].to !== null)
                 ? true
                 : false,
-            [`${day}From`]: eventType.bookingTimes[day].from?.toString().padStart(2, "0"),
-            [`${day}To`]: eventType.bookingTimes[day].to?.toString().padStart(2, "0"),
+            [`${day}From`]:
+              eventType.bookingTimes[day].from !== null
+                ? eventType.bookingTimes[day].from?.toString().padStart(2, "0")
+                : null,
+            [`${day}To`]:
+              eventType.bookingTimes[day].to !== null
+                ? eventType.bookingTimes[day].to?.toString().padStart(2, "0")
+                : null,
           }),
           {}
         )
       : {}), // Return an empty object if bookingTimes is null or undefined
   };
+
+  console.log(editValues);
 
   const handleDelete = async () => {
     await axios.delete("api/event-types?id=" + eventType?._id);
