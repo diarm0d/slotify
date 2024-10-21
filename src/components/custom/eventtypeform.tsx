@@ -178,13 +178,13 @@ const EventTypeForm = ({
           }),
           {}
         )
-      : {}), // Return an empty object if bookingTimes is null or undefined
+      : {}),
   };
 
   console.log(editValues);
 
-  const handleDelete = async () => {
-    await axios.delete("api/event-types?id=" + eventType?._id);
+  const handleDelete = async (id: number) => {
+    await axios.delete("api/event-types?id=" + id);
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -298,7 +298,6 @@ const EventTypeForm = ({
                 <div className="p-4 space-y-2">
                   <Label>Daily Schedule</Label>
                   {days.map((day) => {
-                    const activeDay: string = `${day}Active`;
                     return (
                       <div
                         key={day}
@@ -381,7 +380,7 @@ const EventTypeForm = ({
                           <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
-                              handleDelete;
+                              handleDelete(eventType?._id);
                               setIsOpen(false);
                             }}
                           >
@@ -391,13 +390,10 @@ const EventTypeForm = ({
                       </AlertDialogContent>
                     </AlertDialog>
                   )}
-                  <DrawerClose>
-                    <Button variant="outline" onClick={() => setIsOpen(false)}>
-                      Cancel
-                    </Button>
-                  </DrawerClose>
+                  <Button variant="outline" onClick={() => setIsOpen(false)}>
+                    Cancel
+                  </Button>
                 </DrawerFooter>
-                <pre>{JSON.stringify(values)}</pre>
               </form>
             )}
           />
