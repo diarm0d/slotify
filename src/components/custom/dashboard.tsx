@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { SettingsIcon } from "lucide-react";
 import EventTypeForm from "./eventtypeform";
 import { FormattedDays } from "./eventtypeform";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import UrlCopier from "./urlcopier";
 
 // Mock data for booked events
 const bookedEvents = [
@@ -45,7 +48,7 @@ export interface EventType {
   description: string;
   length: number;
   bookingTimes: FormattedDays;
-  createdAt?: Date; // Timestamps fields if needed
+  createdAt?: Date;
   updatedAt?: Date;
 }
 
@@ -55,6 +58,11 @@ interface Props {
 
 const Dashboard: React.FC<Props> = ({ eventTypes }) => {
   const [activeTab, setActiveTab] = useState("booked");
+  const router = useRouter();
+
+  if (!router) {
+    return <Skeleton className="w-[100px] h-[20px] rounded-full" />;
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -120,7 +128,7 @@ const Dashboard: React.FC<Props> = ({ eventTypes }) => {
                 </div>
               ) : (
                 <>
-                  <ul className="space-y-4">
+                  <ul className="space-y-4 mb-4">
                     {eventTypes.map((type, i) => (
                       <li
                         key={i}
@@ -132,16 +140,22 @@ const Dashboard: React.FC<Props> = ({ eventTypes }) => {
                             {type.length} minutes
                           </p>
                         </div>
-                        <EventTypeForm
-                          eventType={type}
-                          buttonIcon="settings"
-                          buttonType="ghost"
-                          buttonSize="icon"
-                        />
+                        <div className="flex items-center">
+                          <UrlCopier
+                            url={`https://example.com/share-link`}
+                            iconOnly
+                          />
+                          <EventTypeForm
+                            eventType={type}
+                            buttonIcon="settings"
+                            buttonType="ghost"
+                            buttonSize="icon"
+                          />
+                        </div>
                       </li>
                     ))}
                   </ul>
-                  <EventTypeForm />
+                  <EventTypeForm router={router} />
                 </>
               )}
             </CardContent>

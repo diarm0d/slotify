@@ -1,7 +1,7 @@
 import mongoose, { Schema, model } from "mongoose";
 
 type FromTo = {
-  active: boolean,
+  active: boolean;
   from: string;
   to: string;
 };
@@ -19,6 +19,7 @@ type BookingTimes = {
 type EventType = {
   email: string;
   title: string;
+  uri: string;
   description: string;
   length: number;
   bookingTimes: BookingTimes;
@@ -27,6 +28,7 @@ type EventType = {
 };
 
 const FromToSchema = new Schema({
+  active: Boolean,
   from: String,
   to: String,
 });
@@ -35,6 +37,7 @@ const EventTypeSchema = new Schema(
   {
     email: String,
     title: String,
+    uri: { type: String, unique: true },
     description: String,
     length: Number,
     bookingTimes: new Schema({
@@ -52,6 +55,7 @@ const EventTypeSchema = new Schema(
   }
 );
 
-const EventTypeModel = mongoose.models.EventType || model<EventType>("EventType", EventTypeSchema);
+const EventTypeModel =
+  mongoose.models.EventType || model<EventType>("EventType", EventTypeSchema);
 
 export default EventTypeModel;

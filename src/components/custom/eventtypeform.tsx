@@ -2,7 +2,6 @@
 import React from "react";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -39,7 +38,8 @@ import { PlusIcon, SettingsIcon, Trash2Icon } from "lucide-react";
 import axios from "axios";
 import { FieldRenderProps } from "react-final-form";
 import { EventType } from "@/components/custom/dashboard";
-import { NextRouter } from "next/router";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import UrlCopier from "./urlcopier";
 
 const days = [
   "monday",
@@ -109,7 +109,7 @@ interface Props {
   buttonType?: "ghost" | "outline";
   buttonIcon?: "plus" | "settings";
   buttonSize?: "icon";
-  router?: NextRouter;
+  router?: AppRouterInstance;
 }
 
 type FormValues = FormInputs & WeekSchedule;
@@ -218,7 +218,7 @@ const EventTypeForm = ({
     if (response.data) {
       setIsOpen(false);
       router?.push("/dashboard");
-      router?.reload();
+      router?.refresh();
     }
   };
 
@@ -229,7 +229,6 @@ const EventTypeForm = ({
         <Button
           variant={buttonType}
           size={buttonSize}
-          className="mt-4"
           onClick={() => setIsOpen(true)}
         >
           {buttonIcon && buttonIcon === "settings" ? (
@@ -245,16 +244,20 @@ const EventTypeForm = ({
       <DrawerContent className="h-3/4 overflow-auto">
         <ScrollArea className="overflow-auto">
           <DrawerHeader>
-            <DrawerTitle>Create new event type</DrawerTitle>
-            <DrawerDescription>
-              This is a type of event that you can schedule in your calendar.
-            </DrawerDescription>
+            <DrawerTitle>{eventType ? `Edit ${eventType.title}` : "New Event"}</DrawerTitle>
+            {eventType ? (
+              <UrlCopier url={`https://example.com/share-link`} />
+            ) : (
+              <DrawerDescription>
+                This is a type of event that you can schedule in your calendar.
+              </DrawerDescription>
+            )}
           </DrawerHeader>
           <Form<FormValues>
             className="w-full"
             onSubmit={onSubmit}
             initialValues={eventType ? editValues : initialValues}
-            render={({ handleSubmit, submitting, pristine, values, form }) => (
+            render={({ handleSubmit, submitting, pristine, form }) => (
               <form onSubmit={handleSubmit}>
                 <div className="p-4 space-y-4">
                   <div className="space-y-2">

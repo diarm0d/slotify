@@ -3,6 +3,11 @@ import { NextRequest } from "next/server";
 import { session } from "@/lib/session";
 import EventTypeModel from "@/models/EventType";
 
+function uriFromTitle(title: string) {
+  return title.toLowerCase().replace(/ /g, "-");
+}
+
+
 export async function POST(req: NextRequest) {
   await mongoose.connect(process.env.MONGODB_URI || "");
   const data = await req.json();
@@ -19,6 +24,7 @@ export async function PUT(req: NextRequest) {
   await mongoose.connect(process.env.MONGODB_URI || "");
   const data = await req.json();
   const email = await session().get("email");
+  data.uri = uriFromTitle(data.title);
   const id = data.id;
   if (email && id) {
     const eventTypeDoc = await EventTypeModel.updateOne(
