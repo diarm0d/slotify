@@ -45,6 +45,7 @@ export interface EventType {
   _id: number;
   email: string;
   title: string;
+  uri: string;
   description: string;
   length: number;
   bookingTimes: FormattedDays;

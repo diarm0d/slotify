@@ -98,7 +98,7 @@ type Option = {
 
 interface FormInputs {
   title: string;
-  description: string;
+  description: string; 
   length: number;
   bookingTimes: Record<string, string>;
   [key: string]: boolean | string | number | Record<string, string>;
@@ -181,8 +181,6 @@ const EventTypeForm = ({
       : {}),
   };
 
-  console.log(editValues);
-
   const handleDelete = async (id: number) => {
     await axios.delete("api/event-types?id=" + id);
   };
@@ -201,8 +199,6 @@ const EventTypeForm = ({
       }),
       {}
     );
-
-    console.log(formattedDays);
 
     const id = eventType?._id;
     const request = id ? axios.put : axios.post;
@@ -246,7 +242,7 @@ const EventTypeForm = ({
           <DrawerHeader>
             <DrawerTitle>{eventType ? `Edit ${eventType.title}` : "New Event"}</DrawerTitle>
             {eventType ? (
-              <UrlCopier url={`https://example.com/share-link`} />
+              <UrlCopier url={`https://example.com/${eventType.uri}`} />
             ) : (
               <DrawerDescription>
                 This is a type of event that you can schedule in your calendar.

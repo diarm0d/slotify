@@ -25,8 +25,6 @@ export async function GET(req: NextApiRequest) {
     const response = await nylas.auth.exchangeCodeForToken(codeExchangePayload);
     const { grantId, email } = response;
 
-    console.log(response);
-
     await session().set("grantId", grantId);
     await session().set("email", email);
 

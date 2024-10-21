@@ -12,8 +12,9 @@ export async function POST(req: NextRequest) {
   await mongoose.connect(process.env.MONGODB_URI || "");
   const data = await req.json();
   const email = await session().get("email");
+   const uri = uriFromTitle(data.title);
   if (email) {
-    const eventTypeDoc = await EventTypeModel.create({ ...data, email });
+    const eventTypeDoc = await EventTypeModel.create({ ...data, email, uri });
     return Response.json(eventTypeDoc);
   }
 
@@ -24,11 +25,13 @@ export async function PUT(req: NextRequest) {
   await mongoose.connect(process.env.MONGODB_URI || "");
   const data = await req.json();
   const email = await session().get("email");
-  data.uri = uriFromTitle(data.title);
+  const uri = uriFromTitle(data.title);
+
+  console.log(uri);
   const id = data.id;
   if (email && id) {
     const eventTypeDoc = await EventTypeModel.updateOne(
-      { email, _id: id },
+      { email, _id: id, uri: uri },
       data
     );
     return Response.json(eventTypeDoc);
