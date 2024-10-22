@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { session } from "@/lib/session";
 import { EventType } from "@/components/custom/dashboard";
 import { FlattenMaps } from "mongoose";
+import ProfileModel from "@/models/Profile";
 
 export default async function DashboardPage() {
   mongoose.connect(process.env.MONGODB_URI || "");
@@ -16,17 +17,24 @@ export default async function DashboardPage() {
       event: FlattenMaps<Record<string, unknown>> & Required<{ _id: unknown }>
     ) => ({
       _id: event._id,
-      email: event.email || "", 
+      email: event.email || "",
       title: event.title || "",
+      uri: event.uri || "",
       description: event.description || "",
       length: event.length || 0,
       bookingTimes: event.bookingTimes || {},
     })
   ) as EventType[];
 
+  const profile = await ProfileModel.findOne({ email });
+
+  if (!email) {
+    return 'not logged in'
+  }
+
   return (
     <>
-      <Dashboard eventTypes={eventTypes} />
+      <Dashboard eventTypes={eventTypes} username={profile?.username} />
     </>
   );
 }

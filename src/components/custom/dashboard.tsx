@@ -7,14 +7,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SettingsIcon } from "lucide-react";
 import EventTypeForm from "./eventtypeform";
 import { FormattedDays } from "./eventtypeform";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import UrlCopier from "./urlcopier";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle2, AlertCircle } from "lucide-react";
+import axios from "axios";
 
 // Mock data for booked events
 const bookedEvents = [
@@ -55,11 +61,53 @@ export interface EventType {
 
 interface Props {
   eventTypes: EventType[];
+  username?: string;
 }
 
-const Dashboard: React.FC<Props> = ({ eventTypes }) => {
+// Custom hook for form submission state management
+const useFormState = (submitFn: (formData: FormData) => Promise<void>) => {
+  const [formState, setFormState] = useState<{
+    status: "idle" | "submitting" | "success" | "error";
+    message?: string;
+  }>({
+    status: "idle",
+  });
+
+  const formAction = async (formData: FormData) => {
+    try {
+      setFormState({ status: "submitting" });
+      await submitFn(formData);
+      setFormState({
+        status: "success",
+        message: "Form submitted successfully!",
+      });
+    } catch (error) {
+      setFormState({
+        status: "error",
+        message: "Error submitting form. Please try again.",
+      });
+      console.error("Form submission error:", error);
+    }
+  };
+
+  return [formState, formAction] as const;
+};
+
+const submitUsername = async (FormData: FormData) => {
+  await axios.put("api/profile", { username: FormData.get("username") });
+};
+
+const Dashboard: React.FC<Props> = ({ eventTypes, username }) => {
   const [activeTab, setActiveTab] = useState("booked");
+  const [state, formAction] = useFormState(submitUsername);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsSubmitting(true);
+    await formAction(formData);
+    setIsSubmitting(false);
+  };
 
   if (!router) {
     return <Skeleton className="w-[100px] h-[20px] rounded-full" />;
@@ -69,9 +117,10 @@ const Dashboard: React.FC<Props> = ({ eventTypes }) => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Event Dashboard</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="booked">Booked Events</TabsTrigger>
           <TabsTrigger value="types">Event Types</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         <TabsContent value="booked">
           <Card>
@@ -123,42 +172,103 @@ const Dashboard: React.FC<Props> = ({ eventTypes }) => {
                       event type.
                     </div>
                     <div className="flex items-center">
-                      <EventTypeForm />
+                      <EventTypeForm username={username} />
                     </div>
                   </div>
                 </div>
               ) : (
                 <>
                   <ul className="space-y-4 mb-4">
-                    {eventTypes.map((type, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center justify-between p-4 bg-muted rounded-lg"
-                      >
-                        <div>
-                          <h3 className="font-semibold">{type.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {type.length} minutes
-                          </p>
-                        </div>
-                        <div className="flex items-center">
-                          <UrlCopier
-                            url={`https://example.com/share-link`}
-                            iconOnly
-                          />
-                          <EventTypeForm
-                            eventType={type}
-                            buttonIcon="settings"
-                            buttonType="ghost"
-                            buttonSize="icon"
-                          />
-                        </div>
-                      </li>
-                    ))}
+                    {eventTypes.map((type, i) => {
+                      const url = `${process.env.NEX_PUBLIC_URL}/${username}/${type.uri}`;
+                      return (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                        >
+                          <div>
+                            <h3 className="font-semibold">{type.title}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {type.length} minutes
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            <UrlCopier url={url} iconOnly />
+                            <EventTypeForm
+                              eventType={type}
+                              buttonIcon="settings"
+                              buttonType="ghost"
+                              buttonSize="icon"
+                              username={username}
+                            />
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
-                  <EventTypeForm router={router} />
+                  <EventTypeForm router={router} username={username} />
                 </>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Card className="max-w-md">
+                  <CardHeader>
+                    <CardTitle>Profile Settings</CardTitle>
+                    <CardDescription>
+                      Update your profile information here.
+                    </CardDescription>
+                  </CardHeader>
+                  <form action={handleSubmit}>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="username">Username</Label>
+                          <Input
+                            id="username"
+                            name="username"
+                            placeholder="Enter your username"
+                            required
+                            minLength={3}
+                            value={username || ""}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Updating..." : "Update Profile"}
+                      </Button>
+                    </CardFooter>
+                  </form>
+                </Card>
+
+                {state.status !== "idle" && (
+                  <Alert
+                    className="mt-4 max-w-md mx-auto"
+                    variant={
+                      state.status === "error" ? "destructive" : "default"
+                    }
+                  >
+                    {state.status === "error" ? (
+                      <AlertCircle className="h-4 w-4" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    <AlertTitle>
+                      {state.status === "error" ? "Error" : "Success"}
+                    </AlertTitle>
+                    <AlertDescription>{state.message}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

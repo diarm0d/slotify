@@ -110,6 +110,7 @@ interface Props {
   buttonIcon?: "plus" | "settings";
   buttonSize?: "icon";
   router?: AppRouterInstance;
+  username?: string;
 }
 
 type FormValues = FormInputs & WeekSchedule;
@@ -146,10 +147,10 @@ const EventTypeForm = ({
   buttonIcon,
   buttonSize,
   router,
+  username,
 }: Props) => {
-  console.log(eventType);
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
-  const url = `${process.env.NEX_PUBLIC_URL}/username/${eventType?.uri}`;
+  const url = `${process.env.NEX_PUBLIC_URL}/${username}/${eventType?.uri}`;
   const initialValues = { bookingTimes: {} };
   const editValues = eventType && {
     title: eventType.title || "",
