@@ -102,6 +102,7 @@ const Dashboard: React.FC<Props> = ({ eventTypes, username }) => {
   const [state, formAction] = useFormState(submitUsername);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const hasUsername = !!username;
 
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
@@ -118,100 +119,108 @@ const Dashboard: React.FC<Props> = ({ eventTypes, username }) => {
       <h1 className="text-2xl font-bold mb-4">Event Dashboard</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="booked">Booked Events</TabsTrigger>
-          <TabsTrigger value="types">Event Types</TabsTrigger>
+          {hasUsername && (
+            <TabsTrigger value="booked">Booked Events</TabsTrigger>
+          )}
+          {hasUsername && <TabsTrigger value="types">Event Types</TabsTrigger>}
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
-        <TabsContent value="booked">
-          <Card>
-            <CardHeader>
-              <CardTitle>Booked Events</CardTitle>
-              <CardDescription>Your upcoming scheduled events</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-4">
-                {bookedEvents.map((event) => (
-                  <li
-                    key={event.id}
-                    className="flex items-center justify-between p-4 bg-muted rounded-lg"
-                  >
-                    <div>
-                      <h3 className="font-semibold">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {event.date} at {event.time}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {event.attendees} attendees
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="icon">
-                      <SettingsIcon className="h-4 w-4" />
-                      <span className="sr-only">Settings</span>
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="types">
-          <Card>
-            <CardHeader>
-              <CardTitle>Event Types</CardTitle>
-              <CardDescription>
-                Manage your available event types
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {eventTypes.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="block">
-                    <div>
-                      {" "}
-                      Currently no event types available. Please create a new
-                      event type.
-                    </div>
-                    <div className="flex items-center">
-                      <EventTypeForm username={username} />
+        {hasUsername && (
+          <TabsContent value="booked">
+            <Card>
+              <CardHeader>
+                <CardTitle>Booked Events</CardTitle>
+                <CardDescription>
+                  Your upcoming scheduled events
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {bookedEvents.map((event) => (
+                    <li
+                      key={event.id}
+                      className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                    >
+                      <div>
+                        <h3 className="font-semibold">{event.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {event.date} at {event.time}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {event.attendees} attendees
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="icon">
+                        <SettingsIcon className="h-4 w-4" />
+                        <span className="sr-only">Settings</span>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+        {hasUsername && (
+          <TabsContent value="types">
+            <Card>
+              <CardHeader>
+                <CardTitle>Event Types</CardTitle>
+                <CardDescription>
+                  Manage your available event types
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {eventTypes.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="block">
+                      <div>
+                        {" "}
+                        Currently no event types available. Please create a new
+                        event type.
+                      </div>
+                      <div className="flex items-center">
+                        <EventTypeForm username={username} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <>
-                  <ul className="space-y-4 mb-4">
-                    {eventTypes.map((type, i) => {
-                      const url = `${process.env.NEX_PUBLIC_URL}/${username}/${type.uri}`;
-                      return (
-                        <li
-                          key={i}
-                          className="flex items-center justify-between p-4 bg-muted rounded-lg"
-                        >
-                          <div>
-                            <h3 className="font-semibold">{type.title}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {type.length} minutes
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            <UrlCopier url={url} iconOnly />
-                            <EventTypeForm
-                              eventType={type}
-                              buttonIcon="settings"
-                              buttonType="ghost"
-                              buttonSize="icon"
-                              username={username}
-                            />
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <EventTypeForm router={router} username={username} />
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                ) : (
+                  <>
+                    <ul className="space-y-4 mb-4">
+                      {eventTypes.map((type, i) => {
+                        const url = `${process.env.NEX_PUBLIC_URL}/${username}/${type.uri}`;
+                        return (
+                          <li
+                            key={i}
+                            className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                          >
+                            <div>
+                              <h3 className="font-semibold">{type.title}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {type.length} minutes
+                              </p>
+                            </div>
+                            <div className="flex items-center">
+                              <UrlCopier url={url} iconOnly />
+                              <EventTypeForm
+                                eventType={type}
+                                buttonIcon="settings"
+                                buttonType="ghost"
+                                buttonSize="icon"
+                                username={username}
+                              />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <EventTypeForm router={router} username={username} />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
         <TabsContent value="settings">
           <Card>
             <CardHeader>
