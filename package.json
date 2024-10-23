@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
@@ -20,6 +21,7 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
     "final-form": "^4.20.10",
     "lucide-react": "^0.441.0",
     "mongoose": "^8.6.3",
@@ -27,6 +29,7 @@
     "next-app-session": "^1.0.7",
     "nylas": "^7.5.2",
     "react": "^18",
+    "react-day-picker": "^8.10.1",
     "react-dom": "^18",
     "react-final-form": "^6.5.9",
     "shadcn-ui": "^0.9.1",

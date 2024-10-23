@@ -150,7 +150,7 @@ const EventTypeForm = ({
   username,
 }: Props) => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
-  const url = `${process.env.NEX_PUBLIC_URL}/${username}/${eventType?.uri}`;
+  const url = `${process.env.NEXT_PUBLIC_URL}/${username}/${eventType?.uri}`;
   const initialValues = { bookingTimes: {} };
   const editValues = eventType && {
     title: eventType.title || "",

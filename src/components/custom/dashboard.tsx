@@ -98,6 +98,7 @@ const submitUsername = async (FormData: FormData) => {
 };
 
 const Dashboard: React.FC<Props> = ({ eventTypes, username }) => {
+  console.log(eventTypes);
   const [activeTab, setActiveTab] = useState("booked");
   const [state, formAction] = useFormState(submitUsername);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -188,7 +189,7 @@ const Dashboard: React.FC<Props> = ({ eventTypes, username }) => {
                   <>
                     <ul className="space-y-4 mb-4">
                       {eventTypes.map((type, i) => {
-                        const url = `${process.env.NEX_PUBLIC_URL}/${username}/${type.uri}`;
+                        const url = `${process.env.NEXT_PUBLIC_URL}/${username}/${type.uri}`;
                         return (
                           <li
                             key={i}
